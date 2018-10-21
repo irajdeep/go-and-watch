@@ -2,72 +2,55 @@
 
 
 [[projects]]
-  digest = "1:d9d00fe8300ca50460de671fd787e4626ab8cea82b29825100cabdaeec2ea4d8"
   name = "github.com/Songmu/axslogparser"
   packages = ["."]
-  pruneopts = "UT"
   revision = "c68297a2fde191333522f1236d20de63d4019311"
   version = "v1.1.0"
 
 [[projects]]
   branch = "master"
-  digest = "1:0cc40f62e88079fab1597ddf9674f232efbf8ad201a76e2b33a2ceec856e5bd5"
   name = "github.com/Songmu/go-ltsv"
   packages = ["."]
-  pruneopts = "UT"
   revision = "c30af2b7b171f5896188903b69f8afa4ef3e7daa"
 
 [[projects]]
   branch = "master"
-  digest = "1:59392ed8afb901aab4287d4894df8191722e34f3957716f4350c8c133ce99046"
   name = "github.com/hpcloud/tail"
   packages = [
     ".",
     "ratelimiter",
     "util",
     "watch",
-    "winfile",
+    "winfile"
   ]
-  pruneopts = "UT"
   revision = "a1dbeea552b7c8df4b542c66073e393de198a800"
 
 [[projects]]
-  digest = "1:40e195917a951a8bf867cd05de2a46aaf1806c50cf92eebf4c16f78cd196f747"
   name = "github.com/pkg/errors"
   packages = ["."]
-  pruneopts = "UT"
   revision = "645ef00459ed84a119197bfb8d8205042c6df63d"
   version = "v0.8.0"
 
 [[projects]]
   branch = "master"
-  digest = "1:be4f165c438aa39318fd5c8c180a95f4a52524641c0b714638b0fd9fd912b38d"
   name = "golang.org/x/sys"
   packages = ["unix"]
-  pruneopts = "UT"
   revision = "8e24a49d80f82323e1c4db1b5da3e0f31171a151"
 
 [[projects]]
-  digest = "1:abeb38ade3f32a92943e5be54f55ed6d6e3b6602761d74b4aab4c9dd45c18abd"
   name = "gopkg.in/fsnotify/fsnotify.v1"
   packages = ["."]
-  pruneopts = "UT"
   revision = "c2828203cd70a50dcccfb2761f8b1f8ceef9a8e9"
   version = "v1.4.7"
 
 [[projects]]
-  digest = "1:3c839a777de0e6da035c9de900b60cbec463b0a89351192c1ea083eaf9e0fce0"
   name = "gopkg.in/tomb.v1"
   packages = ["."]
-  pruneopts = "UT"
   revision = "c131134a1947e9afd9cecfe11f4c6dff0732ae58"
 
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  input-imports = [
-    "github.com/Songmu/axslogparser",
-    "github.com/hpcloud/tail",
-  ]
+  inputs-digest = "60233eeec53afc6d889bbb64bb1c9a74572d9004d2f0857784873156e22665cd"
   solver-name = "gps-cdcl"
   solver-version = 1
