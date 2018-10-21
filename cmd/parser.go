@@ -47,12 +47,12 @@ func Process(monitorCh chan AggregatedStats, alertsCh chan AggregatedStats) {
 
 type EndPointStat struct {
 	EndPoint string
-	hits int64
+	hits int
 }
 
 type RequestStatusStat struct {
 	Status int
-	count int64
+	count int
 }
 
 type DataStore struct {
@@ -113,12 +113,27 @@ func computeAggregatedStatsAndSend(aggregatedStatsCh chan AggregatedStats) {
 	dataStore.mutex.Lock()
 	defer dataStore.mutex.Unlock()
 
-
 	timeStamps := dataStore.TimeStampsSorted
 	timeStamps = timeStamps[len(timeStamps) - 10 : ] // pick last 10 time stamps. FIXME: for last 10 seconds
 	
+	seenURIs := make(map[string]int)
+	seenStatus := make(map[int]int)
+	for _, t := range timeStamps {
+		for uri, count := range dataStore.EndPointStats[t] {
+			seenURIs[uri] += count
+		}
+		for status, count := range dataStore.RequestStatusStats[t] {
+			seenStatus[status] += count
+		}
+	}
+
 	var aggregatedStats AggregatedStats
-	
+	for uri, count := range seenURIs {
+		aggregatedStats.EndPointStats = append(aggregatedStats.EndPointStats, EndPointStat{EndPoint: uri, hits: count})
+	}
+	for status, count := range seenStatus {
+		aggregatedStats.RequestStatusStats = append(aggregatedStats.RequestStatusStats, RequestStatusStat{Status: status, count: count})
+	}
 
 	aggregatedStatsCh <- aggregatedStats
 }
