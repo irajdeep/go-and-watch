@@ -1,15 +1,17 @@
 package parser
 
-import {
+import (
 	"os"
 	"bufio"
-}
+)
 
 type LogLine struct {
 	FormattedLine string // as is log line
 	ClientIP string
 	When string
+	ReqType string
 	EndPoint string
+	StatusCode int
 	Info string
 }
 
@@ -26,14 +28,14 @@ func ParseLogFile(fileName string) ([]LogLine) {
 	log := make([]LogLine, 100)
 	for line := range linesCh {
 		lineStruct := &LogLine{FormattedLine: line}
-		parseLine(lineStruct)
+		lineStruct.parseLine()
 		log = append(log, lineStruct)
 	}
 
 	return log
 }
 
-func readLogFile(fileName string, chan string linesCh) {
+func readLogFile(fileName string, linesCh chan string) {
 	defer close(linesCh)
 
 	f, err := os.Open(filePath)
