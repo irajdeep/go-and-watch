@@ -27,9 +27,12 @@ func ParseLogFile(filePath string, logCh chan LogLine) {
 	}
 }
 
-func Process() {
+func Process(monitorCh chan AggregatedStats, alertsCh chan AggregatedStats) {
 	logCh := make(chan LogLine)
 	go ParseLogFile("../sample-log/sample.log", logCh)
+
+	go sendStatsToMonitor(monitorCh)
+	go sendStatsToAlert(alertsCh)
 
 	for lineStruct := range logCh {
 		go updateDataStructure(&lineStruct)
@@ -57,8 +60,20 @@ type AggregatedStats struct {
 	RequestStatusStats []RequestStatusStat
 }
 
+// In-memory data structures
+var aggregatedStats AggregatedStats
+var dataStore DataStore
+
 func updateDataStructure(lineStruct *LogLine) {
 
+}
+
+func sendStatsToAlert(alertsCh chan AggregatedStats) {
+	// TODO
+}
+
+func sendStatsToMonitor(monitorCh chan AggregatedStats) {
+	// TODO
 }
 
 func cleanDataStore() {
