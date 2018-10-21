@@ -1,8 +1,6 @@
 package main
 
 import (
-	"os"
-	"bufio"
 	"github.com/Songmu/axslogparser"
 	"github.com/hpcloud/tail"
 )
@@ -18,14 +16,46 @@ func (logLine *LogLine) parseLine() {
 }
 
 func ParseLogFile(filePath string, logCh chan LogLine) {
-	t, err := tail.TailFile(filePath, tail.Config{
+	t, _ := tail.TailFile(filePath, tail.Config{
 		Follow: true,
 		ReOpen: true})
 
-	log := make([]LogLine, 0, 100)
-	for line := range t.lines {
-		lineStruct := LogLine{FormattedLine: line}
+	for line := range t.Lines {
+		lineStruct := LogLine{FormattedLine: line.Text}
 		lineStruct.parseLine()
 		logCh <- lineStruct
 	}
+}
+
+func Process() {
+	logCh := make(chan LogLine)
+	go ParseLogFile("../sample-log/sample.log", logCh)
+
+	for lineStruct := range logCh {
+		go updateDataStructure(&lineStruct)
+	}
+}
+
+type EndPointStat struct {
+	EndPoint string
+	hits int64
+}
+
+type RequestStatusStat struct {
+	Status int
+	count int64
+}
+
+type DataStore struct {
+	EndPointStats map[string]map[string]int // timeStamp -> endpoint->count
+	RequestStatusStats map[string]map[int]int
+	TimeStampsSorted []string
+}
+
+func updateDataStructure(lineStruct *LogLine) {
+	
+}
+
+func cleanDataStore() {
+	// TODO
 }
