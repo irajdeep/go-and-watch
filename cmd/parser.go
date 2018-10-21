@@ -52,8 +52,13 @@ type DataStore struct {
 	TimeStampsSorted []string
 }
 
+type AggregatedStats struct {
+	EndPointStats []EndPointStat
+	RequestStatusStats []RequestStatusStat
+}
+
 func updateDataStructure(lineStruct *LogLine) {
-	
+
 }
 
 func cleanDataStore() {
