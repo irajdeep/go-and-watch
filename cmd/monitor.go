@@ -5,12 +5,12 @@ import (
 )
 
 // Receiver channel from parser
-
+// To be called from main.go
 func processAndMonitor(statsData <-chan AggregatedStats) {
 	// get the desired data from the channel
-	endPointStat, requestStatusStat := <-statsData
-	monitorEndpoint(endPointStat.EndPointStats)
-	monitorStatusCode(endPointStat.RequestStatusStats)
+	monitorStat, _ := <-statsData
+	monitorEndpoint(monitorStat.EndPointStats)
+	monitorStatusCode(monitorStat.RequestStatusStats)
 
 }
 
@@ -34,5 +34,5 @@ func monitorEndpoint(endPointStat []EndPointStat) {
 }
 
 func monitorStatusCode(requestStatusStats []RequestStatusStat) {
-
+	log.Printf("Request statuscode stats over last 10 secs: %v", requestStatusStats)
 }
