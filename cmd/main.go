@@ -8,4 +8,15 @@ func main() {
 
 	go processAndMonitor(monitorCh)
 	go validateAndDisplayAlert(alertsCh)
+
+	/**
+
+	stopCh := make(chan struct{})
+	defer close(stopCh)
+
+	sigTerm := make(chan os.Signal, 1)
+	signal.Notify(sigTerm, syscall.SIGTERM)
+	signal.Notify(sigTerm, syscall.SIGINT)
+	<-sigTerm
+	 */
 }
