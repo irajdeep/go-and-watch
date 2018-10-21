@@ -3,31 +3,27 @@ package parser
 import (
 	"os"
 	"bufio"
+	"github.com/Songmu/axslogparser"
 )
 
 type LogLine struct {
 	FormattedLine string // as is log line
-	ClientIP string
-	When string
-	ReqType string
-	EndPoint string
-	StatusCode int
-	Info string
+	parsedLog *axslogparser.Log
 }
 
 func (logLine *LogLine) parseLine() {
-	// TODO parse logic using logLine.FormattedLine
-
+	parsedLog, _ := axslogparser.Parse(logLine.FormattedLine)
+	logLine.parsedLog = parsedLog
 }
 
-func ParseLogFile(fileName string) ([]LogLine) {
+func ParseLogFile(filePath string) ([]LogLine) {
 	linesCh := make(chan string)
 
-	go readLogFile(fileName, linesCh)
+	go readLogFile(filePath, linesCh)
 
-	log := make([]LogLine, 100)
+	log := make([]LogLine, 0, 100)
 	for line := range linesCh {
-		lineStruct := &LogLine{FormattedLine: line}
+		lineStruct := LogLine{FormattedLine: line}
 		lineStruct.parseLine()
 		log = append(log, lineStruct)
 	}
@@ -35,7 +31,7 @@ func ParseLogFile(fileName string) ([]LogLine) {
 	return log
 }
 
-func readLogFile(fileName string, linesCh chan string) {
+func readLogFile(filePath string, linesCh chan string) {
 	defer close(linesCh)
 
 	f, err := os.Open(filePath)

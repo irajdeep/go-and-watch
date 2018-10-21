@@ -2,13 +2,14 @@ package parser
 
 import (
 	"testing"
-	"fmt"
 )
 
 func TestParseLogFile(t * testing.T) {
 	fileName := "../sample-log/sample.log"
 	log := ParseLogFile(fileName)
-	for l := range log {
-		fmt.Println("%s", l.FormattedLine)
+	for _, l := range log {
+		t.Log(l.parsedLog)
 	}
+	t.Log(len(log))
+	t.Log("asf")
 }
