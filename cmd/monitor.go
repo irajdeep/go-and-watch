@@ -1,6 +1,6 @@
 package main
 
 // Receiver channel from parser
-func processMonitorData(statsData <-chan map[string]int) {
+func processMonitorData(statsData <-chan AggregatedStats) {
 
 }
