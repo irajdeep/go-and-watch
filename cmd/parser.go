@@ -4,6 +4,7 @@ import (
 	"os"
 	"bufio"
 	"github.com/Songmu/axslogparser"
+	"github.com/hpcloud/tail"
 )
 
 type LogLine struct {
@@ -16,33 +17,15 @@ func (logLine *LogLine) parseLine() {
 	logLine.parsedLog = parsedLog
 }
 
-func ParseLogFile(filePath string) ([]LogLine) {
-	linesCh := make(chan string)
-
-	go readLogFile(filePath, linesCh)
+func ParseLogFile(filePath string, logCh chan LogLine) {
+	t, err := tail.TailFile(filePath, tail.Config{
+		Follow: true,
+		ReOpen: true})
 
 	log := make([]LogLine, 0, 100)
-	for line := range linesCh {
+	for line := range t.lines {
 		lineStruct := LogLine{FormattedLine: line}
 		lineStruct.parseLine()
-		log = append(log, lineStruct)
+		logCh <- lineStruct
 	}
-
-	return log
-}
-
-func readLogFile(filePath string, linesCh chan string) {
-	defer close(linesCh)
-
-	f, err := os.Open(filePath)
-	if err != nil {
-		return
-	}
-	defer f.Close()
-
-	scanner := bufio.NewScanner(f)
-	for scanner.Scan() {
-		linesCh <- scanner.Text()
-	}
-	err = scanner.Err()
 }

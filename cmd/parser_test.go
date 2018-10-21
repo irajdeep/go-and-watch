@@ -10,6 +10,5 @@ func TestParseLogFile(t * testing.T) {
 	for _, l := range log {
 		t.Log(l.parsedLog)
 	}
-	t.Log(len(log))
-	t.Log("asf")
+	t.Logf("%d lines found", len(log))
 }
