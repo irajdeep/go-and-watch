@@ -1,8 +1,5 @@
-//package main
-//
-//import (
-//)
-//
-//func main() {
-//
-//}
+package main
+
+func main() {
+
+}
