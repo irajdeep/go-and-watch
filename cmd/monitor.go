@@ -16,8 +16,8 @@ func processAndMonitor(statsData <-chan AggregatedStats) {
 
 func monitorEndpoint(endPointStat []EndPointStat) {
 
-	maxHits := int64(0)
-	totalHits := int64(0)
+	maxHits := int(0)
+	totalHits := int(0)
 	maxHitEndpoint := ""
 
 	for _, element := range endPointStat {
