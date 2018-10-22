@@ -1,5 +1,11 @@
 package main
 
+import (
+	"os"
+	"os/signal"
+	"syscall"
+)
+
 func main() {
 	monitorCh := make(chan AggregatedStats)
 	alertsCh := make(chan AggregatedStats)
@@ -9,8 +15,6 @@ func main() {
 	go processAndMonitor(monitorCh)
 	go validateAndDisplayAlert(alertsCh)
 
-	/**
-
 	stopCh := make(chan struct{})
 	defer close(stopCh)
 
@@ -18,5 +22,4 @@ func main() {
 	signal.Notify(sigTerm, syscall.SIGTERM)
 	signal.Notify(sigTerm, syscall.SIGINT)
 	<-sigTerm
-	 */
 }

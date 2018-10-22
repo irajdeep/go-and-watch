@@ -1,14 +1,15 @@
 package main
 
 import (
+	"sync"
+
 	"github.com/Songmu/axslogparser"
 	"github.com/hpcloud/tail"
-	"sync"
 )
 
 type LogLine struct {
 	FormattedLine string // as is log line
-	parsedLog *axslogparser.Log
+	parsedLog     *axslogparser.Log
 }
 
 func (logLine *LogLine) parseLine() {
@@ -33,7 +34,7 @@ func Process(monitorCh chan AggregatedStats, alertsCh chan AggregatedStats) {
 	go ParseLogFile("../sample-log/sample.log", logCh)
 
 	aggregatedStatsCh := make(chan AggregatedStats)
-	
+
 	for lineStruct := range logCh {
 		go updateDataStructure(&lineStruct, aggregatedStatsCh)
 		go computeAggregatedStatsAndSend(aggregatedStatsCh)
@@ -47,25 +48,25 @@ func Process(monitorCh chan AggregatedStats, alertsCh chan AggregatedStats) {
 
 type EndPointStat struct {
 	EndPoint string
-	hits int
+	hits     int
 }
 
 type RequestStatusStat struct {
 	Status int
-	count int
+	count  int
 }
 
 type DataStore struct {
-	EndPointStats map[string]map[string]int // timeStamp -> endpoint->count
-	RequestStatusStats map[string]map[int]int
-	TimeStampsSorted []string
-	TimeStampsDict map[string]bool
+	EndPointStats      map[int64]map[string]int // timeStamp -> endpoint->count
+	RequestStatusStats map[int64]map[int]int
+	TimeStampsSorted   []int64 // number of seconds
+	TimeStampsDict     map[int64]bool
 
 	mutex sync.Mutex
 }
 
 type AggregatedStats struct {
-	EndPointStats []EndPointStat
+	EndPointStats      []EndPointStat
 	RequestStatusStats []RequestStatusStat
 }
 
@@ -75,16 +76,17 @@ var dataStore DataStore
 
 func updateDataStructure(lineStruct *LogLine, aggregatedStatsCh chan AggregatedStats) {
 	parsedLog := lineStruct.parsedLog
-	_, exists := dataStore.TimeStampsDict[parsedLog.TimeStr]
+	epoch := parsedLog.Time.Unix()
+	_, exists := dataStore.TimeStampsDict[epoch]
 
 	// make space for new timestamp
 	if !exists {
 		dataStore.mutex.Lock()
 
-		dataStore.TimeStampsDict[parsedLog.TimeStr] = true
-		dataStore.TimeStampsSorted = append(dataStore.TimeStampsSorted, parsedLog.TimeStr)
-		dataStore.EndPointStats[parsedLog.TimeStr] = make(map[string]int)
-		dataStore.RequestStatusStats[parsedLog.TimeStr] = make(map[int]int)
+		dataStore.TimeStampsDict[epoch] = true
+		dataStore.TimeStampsSorted = append(dataStore.TimeStampsSorted, epoch)
+		dataStore.EndPointStats[epoch] = make(map[string]int)
+		dataStore.RequestStatusStats[epoch] = make(map[int]int)
 
 		dataStore.mutex.Unlock()
 	}
@@ -94,15 +96,16 @@ func updateDataStructure(lineStruct *LogLine, aggregatedStatsCh chan AggregatedS
 
 func actualUpdateDataStructure(lineStruct *LogLine, aggregatedStatsCh chan AggregatedStats) {
 	parsedLog := lineStruct.parsedLog
-	_, exists := dataStore.TimeStampsDict[parsedLog.TimeStr]
+	epoch := parsedLog.Time.Unix()
+	_, exists := dataStore.TimeStampsDict[epoch]
 	if !exists {
 		return
 	}
 
 	dataStore.mutex.Lock()
-	
-	endPointStats := dataStore.EndPointStats[parsedLog.TimeStr]
-	requestStatusStats := dataStore.RequestStatusStats[parsedLog.TimeStr]
+
+	endPointStats := dataStore.EndPointStats[epoch]
+	requestStatusStats := dataStore.RequestStatusStats[epoch]
 	endPointStats[parsedLog.RequestURI]++
 	requestStatusStats[parsedLog.Status]++
 
@@ -114,8 +117,18 @@ func computeAggregatedStatsAndSend(aggregatedStatsCh chan AggregatedStats) {
 	defer dataStore.mutex.Unlock()
 
 	timeStamps := dataStore.TimeStampsSorted
-	timeStamps = timeStamps[len(timeStamps) - 10 : ] // pick last 10 time stamps. FIXME: for last 10 seconds
-	
+	leftIdx := len(timeStamps) - 10
+	if leftIdx <= 0 {
+		leftIdx = 0
+	}
+
+	// pick last 10 epochs(seconds)
+	windowStart := len(timeStamps) - 10
+	if windowStart < 0 {
+		windowStart = 0
+	}
+	timeStamps = timeStamps[len(timeStamps)-10:]
+
 	seenURIs := make(map[string]int)
 	seenStatus := make(map[int]int)
 	for _, t := range timeStamps {
