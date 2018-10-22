@@ -18,6 +18,17 @@
   revision = "c30af2b7b171f5896188903b69f8afa4ef3e7daa"
 
 [[projects]]
+  digest = "1:58a4fab72961694f0790a03d6cc9e5340a1f187f0fbe703a8838e657bdce6318"
+  name = "github.com/brianvoe/gofakeit"
+  packages = [
+    ".",
+    "data",
+  ]
+  pruneopts = "UT"
+  revision = "001277c505b0fe12dd932b9e63f375fcb5b92bb0"
+  version = "v3.13.0"
+
+[[projects]]
   branch = "master"
   digest = "1:59392ed8afb901aab4287d4894df8191722e34f3957716f4350c8c133ce99046"
   name = "github.com/hpcloud/tail"
@@ -67,6 +78,7 @@
   analyzer-version = 1
   input-imports = [
     "github.com/Songmu/axslogparser",
+    "github.com/brianvoe/gofakeit",
     "github.com/hpcloud/tail",
   ]
   solver-name = "gps-cdcl"

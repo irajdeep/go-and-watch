@@ -2,11 +2,28 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"log"
 	"math/rand"
 	"os"
 	"time"
+
+	"github.com/brianvoe/gofakeit"
 )
+
+const (
+	ApacheCommonLog = "%s - %s %d [%s] \"%s %s\" %d %d"
+)
+
+var endPoints = [...]string{"foo",
+	"bar",
+	"/",
+	"/admin",
+	"/quora/?id=1",
+	"/get_room_page",
+	"get_foo_bar",
+	"getIdentifier",
+	"get_meaning_of_42"}
 
 // sample log line
 // 77.179.66.156 - - [25/Oct/2016:14:49:33 +0200] "GET / HTTP/1.1" 200 612 "-" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/54.0.2840.59 Safari/537.36"
@@ -32,58 +49,38 @@ func main() {
 
 	defer f.Close()
 
-	ips := []string{"77.179.66.156",
-		"127.0.0.1",
-		"127.0.0.2",
-		"134.23.22.11",
-		"110.21.22.1"}
-
-	requestType := []string{"GET",
-		"POST",
-		"PUT",
-	}
-
-	endPoints := []string{"foo",
-		"bar",
-		"/",
-		"/admin",
-		"/quora/?id=1",
-		"/get_room_page",
-		"get_foo_bar",
-		"getIdentifier",
-		"get_meaning_of_42"}
-
-	statusCode := []string{"200", "201", "404", "400", "500"}
-
-	// Constant log parts
-	//uselessRequestInfoLine := "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/54.0.2840.59 Safari/537.36"
-	protocolType := "HTTP/1.1"
-
 	// Default number of times the log f gets written per second
 	timesPerSecond := 10
 	for {
-		// Write to the f
-		ipIndex := randInt(0, len(ips)-1)
-		requestTypeIndex := randInt(0, len(requestType)-1)
-		endPointsIndex := randInt(0, len(endPoints)-1)
-		statusCodeIndex := randInt(0, len(statusCode)-1)
-		currentTime := time.Now().Format(time.RFC3339)
-
-		logWriteData := ips[ipIndex] + " - - " + "[" + currentTime + "]" +
-			" \"" + requestType[requestTypeIndex] + " " + endPoints[endPointsIndex] + " " + protocolType +
-			"\" " + statusCode[statusCodeIndex] + " 301" + " \"-\"" +
-			" \"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/54.0.2840.59 Safari/537.36\""
-
+		logWriteData := newApacheCommonLog()
 		log.Printf("Writting .... %s", logWriteData)
 		_, err := f.WriteString(logWriteData + "\n")
 
 		if err != nil {
 			log.Fatalf("Failed to write to f : %v", err)
-
 		}
 
 		time.Sleep(time.Duration(1e9 / timesPerSecond)) //
 	}
+}
+
+func newApacheCommonLog() string {
+	return fmt.Sprintf(
+		ApacheCommonLog,
+		gofakeit.IPv4Address(),
+		gofakeit.Username(),
+		gofakeit.Number(0, 1000),
+		time.Now().Format(time.RFC3339),
+		gofakeit.HTTPMethod(),
+		randResourceURI(),
+		gofakeit.StatusCode(),
+		gofakeit.Number(0, 30000),
+	)
+}
+
+func randResourceURI() string {
+	num := gofakeit.Number(0, len(endPoints)-1)
+	return endPoints[num]
 }
 
 func randInt(min int, max int) int {
