@@ -11,6 +11,7 @@ import (
 // sample log line
 // 77.179.66.156 - - [25/Oct/2016:14:49:33 +0200] "GET / HTTP/1.1" 200 612 "-" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/54.0.2840.59 Safari/537.36"
 func main() {
+
 	filePath := flag.String("log-file-path", "/tmp/access.log", "Pass the filepath to write logs to")
 	flag.Parse()
 
@@ -52,7 +53,7 @@ func main() {
 		"getIdentifier",
 		"get_meaning_of_42"}
 
-	statusCode := []int{200, 201, 404, 400, 500}
+	statusCode := []string{"200", "201", "404", "400", "500"}
 
 	// Constant log parts
 	//uselessRequestInfoLine := "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/54.0.2840.59 Safari/537.36"
@@ -68,9 +69,10 @@ func main() {
 		statusCodeIndex := randInt(0, len(statusCode)-1)
 		currentTime := time.Now().Format("25/Oct/2016:14:49:33 +0200")
 
-		logWriteData := ips[ipIndex] + " - - " + "[" + currentTime + "]" + "\"" + requestType[requestTypeIndex] + " " + endPoints[endPointsIndex] +
-			" " + protocolType + "\" " + string(statusCode[statusCodeIndex]) + "301" + "\"-\"" +
-			"\"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/54.0.2840.59 Safari/537.36\""
+		logWriteData := ips[ipIndex] + " - - " + "[" + currentTime + "]" +
+			" \"" + requestType[requestTypeIndex] + " " + endPoints[endPointsIndex] + " " + protocolType +
+			"\" " + statusCode[statusCodeIndex] + " 301" + " \"-\"" +
+			" \"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/54.0.2840.59 Safari/537.36\""
 
 		log.Printf("Writting .... %s", logWriteData)
 		_, err := f.WriteString(logWriteData + "\n")
