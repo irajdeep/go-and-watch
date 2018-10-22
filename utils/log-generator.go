@@ -67,7 +67,7 @@ func main() {
 		requestTypeIndex := randInt(0, len(requestType)-1)
 		endPointsIndex := randInt(0, len(endPoints)-1)
 		statusCodeIndex := randInt(0, len(statusCode)-1)
-		currentTime := time.Now().Format("25/Oct/2016:14:49:33 +0200")
+		currentTime := time.Now().Format(time.RFC3339)
 
 		logWriteData := ips[ipIndex] + " - - " + "[" + currentTime + "]" +
 			" \"" + requestType[requestTypeIndex] + " " + endPoints[endPointsIndex] + " " + protocolType +
