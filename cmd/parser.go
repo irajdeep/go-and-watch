@@ -1,6 +1,7 @@
 package main
 
 import (
+	"log"
 	"sync"
 
 	"github.com/Songmu/axslogparser"
@@ -13,7 +14,8 @@ type LogLine struct {
 }
 
 func (logLine *LogLine) parseLine() {
-	parsedLog, _ := axslogparser.Parse(logLine.FormattedLine)
+	parsedLog, err := axslogparser.Parse(logLine.FormattedLine)
+	log.Println(parsedLog, err)
 	logLine.parsedLog = parsedLog
 }
 
@@ -36,7 +38,7 @@ func Process(monitorCh chan AggregatedStats, alertsCh chan AggregatedStats) {
 	aggregatedStatsCh := make(chan AggregatedStats)
 
 	for lineStruct := range logCh {
-		go updateDataStructure(&lineStruct, aggregatedStatsCh)
+		go updateDataStructure(lineStruct, aggregatedStatsCh)
 		go computeAggregatedStatsAndSend(aggregatedStatsCh)
 	}
 
@@ -74,9 +76,10 @@ type AggregatedStats struct {
 var aggregatedStats AggregatedStats
 var dataStore DataStore
 
-func updateDataStructure(lineStruct *LogLine, aggregatedStatsCh chan AggregatedStats) {
+func updateDataStructure(lineStruct LogLine, aggregatedStatsCh chan AggregatedStats) {
 	parsedLog := lineStruct.parsedLog
 	epoch := parsedLog.Time.Unix()
+
 	_, exists := dataStore.TimeStampsDict[epoch]
 
 	// make space for new timestamp
@@ -94,7 +97,7 @@ func updateDataStructure(lineStruct *LogLine, aggregatedStatsCh chan AggregatedS
 	go actualUpdateDataStructure(lineStruct, aggregatedStatsCh)
 }
 
-func actualUpdateDataStructure(lineStruct *LogLine, aggregatedStatsCh chan AggregatedStats) {
+func actualUpdateDataStructure(lineStruct LogLine, aggregatedStatsCh chan AggregatedStats) {
 	parsedLog := lineStruct.parsedLog
 	epoch := parsedLog.Time.Unix()
 	_, exists := dataStore.TimeStampsDict[epoch]
@@ -127,7 +130,7 @@ func computeAggregatedStatsAndSend(aggregatedStatsCh chan AggregatedStats) {
 	if windowStart < 0 {
 		windowStart = 0
 	}
-	timeStamps = timeStamps[len(timeStamps)-10:]
+	timeStamps = timeStamps[windowStart:]
 
 	seenURIs := make(map[string]int)
 	seenStatus := make(map[int]int)
