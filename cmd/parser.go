@@ -35,12 +35,15 @@ func Process(monitorCh chan AggregatedStats, alertsCh chan AggregatedStats) {
 	logCh := make(chan LogLine)
 	go ParseLogFile("../sample-log/sample.log", logCh)
 
-	aggregatedStatsCh := make(chan AggregatedStats)
+	initDataStore()
 
-	for lineStruct := range logCh {
-		go updateDataStructure(lineStruct, aggregatedStatsCh)
-		go computeAggregatedStatsAndSend(aggregatedStatsCh)
-	}
+	aggregatedStatsCh := make(chan AggregatedStats)
+	go func() {
+		for lineStruct := range logCh {
+			go updateDataStructure(lineStruct, aggregatedStatsCh)
+			go computeAggregatedStatsAndSend(aggregatedStatsCh)
+		}
+	}()
 
 	go sendStatsToMonitor(monitorCh, aggregatedStatsCh)
 	go sendStatsToAlerts(alertsCh, aggregatedStatsCh)
@@ -75,6 +78,13 @@ type AggregatedStats struct {
 // In-memory data structures
 var aggregatedStats AggregatedStats
 var dataStore DataStore
+
+func initDataStore() {
+	dataStore.EndPointStats = make(map[int64]map[string]int)
+	dataStore.RequestStatusStats = make(map[int64]map[int]int)
+	dataStore.TimeStampsSorted = make([]int64, 0, 100)
+	dataStore.TimeStampsDict = make(map[int64]bool)
+}
 
 func updateDataStructure(lineStruct LogLine, aggregatedStatsCh chan AggregatedStats) {
 	parsedLog := lineStruct.parsedLog
@@ -143,7 +153,10 @@ func computeAggregatedStatsAndSend(aggregatedStatsCh chan AggregatedStats) {
 		}
 	}
 
-	var aggregatedStats AggregatedStats
+	aggregatedStats := AggregatedStats{
+		EndPointStats:      make([]EndPointStat, 0, 100),
+		RequestStatusStats: make([]RequestStatusStat, 0, 100),
+	}
 	for uri, count := range seenURIs {
 		aggregatedStats.EndPointStats = append(aggregatedStats.EndPointStats, EndPointStat{EndPoint: uri, hits: count})
 	}
