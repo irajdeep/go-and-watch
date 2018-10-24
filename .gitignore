@@ -2,3 +2,10 @@
 .DS_Store
 
 sample-log/
+
+# Binaries for programs and plugins
+*.exe
+*.exe~
+
+# Test binary, build with `go test -c`
+*.test
