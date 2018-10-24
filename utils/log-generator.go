@@ -12,7 +12,7 @@ import (
 )
 
 const (
-	ApacheCommonLog = "%s - %s %d [%s] \"%s %s\" %d %d"
+	ApacheCommonLog = "%s - - [%s] \"%s %s\" %d %d"
 )
 
 var endPoints = [...]string{"foo",
@@ -64,13 +64,12 @@ func main() {
 	}
 }
 
+// "%s - - [%s] \"%s %s\" %d %d"
 func newApacheCommonLog() string {
 	return fmt.Sprintf(
 		ApacheCommonLog,
 		gofakeit.IPv4Address(),
-		gofakeit.Username(),
-		gofakeit.Number(0, 1000),
-		time.Now().Format(time.RFC3339),
+		fakeFormattedCurrentTime(),
 		gofakeit.HTTPMethod(),
 		randResourceURI(),
 		gofakeit.StatusCode(),
@@ -78,9 +77,17 @@ func newApacheCommonLog() string {
 	)
 }
 
+// 11/Jun/2017:05:56:04 +0900
+func fakeFormattedCurrentTime() string {
+	t := time.Now()
+	return fmt.Sprintf("%d/%02d/%02d:%02d:%02d:%02d +0200",
+		t.Year(), t.Month(), t.Day(),
+		t.Hour(), t.Minute(), t.Second())
+}
+
 func randResourceURI() string {
 	num := gofakeit.Number(0, len(endPoints)-1)
-	return endPoints[num]
+	return endPoints[num] + " HTTP/1.1"
 }
 
 func randInt(min int, max int) int {
