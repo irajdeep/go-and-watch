@@ -1,6 +1,7 @@
 package main
 
 import (
+	"log"
 	"os"
 	"os/signal"
 	"syscall"
@@ -9,6 +10,12 @@ import (
 func main() {
 	monitorCh := make(chan AggregatedStats)
 	alertsCh := make(chan AggregatedStats)
+
+	go func() {
+		for stats := range monitorCh {
+			log.Println(stats)
+		}
+	}()
 
 	go Process(monitorCh, alertsCh)
 
