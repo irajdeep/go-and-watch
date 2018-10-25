@@ -1,7 +1,6 @@
 package main
 
 import (
-	"log"
 	"sync"
 
 	"github.com/Songmu/axslogparser"
@@ -14,8 +13,7 @@ type LogLine struct {
 }
 
 func (logLine *LogLine) parseLine() {
-	parsedLog, err := axslogparser.Parse(logLine.FormattedLine)
-	log.Println(parsedLog, err)
+	parsedLog, _ := axslogparser.Parse(logLine.FormattedLine)
 	logLine.parsedLog = parsedLog
 }
 

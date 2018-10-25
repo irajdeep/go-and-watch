@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"log"
 	"os"
 	"os/signal"
@@ -13,7 +14,8 @@ func main() {
 
 	go func() {
 		for stats := range monitorCh {
-			log.Println(stats)
+			jso, _ := json.Marshal(stats)
+			log.Println(string(jso))
 		}
 	}()
 
