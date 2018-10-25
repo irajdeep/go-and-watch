@@ -23,11 +23,11 @@ func monitorEndpoint(endPointStat []EndPointStat) {
 	for _, element := range endPointStat {
 		// index is the index where we are
 		// element is the element from someSlice for where we are
-		if element.hits > maxHits {
-			maxHits = element.hits
+		if element.Hits > maxHits {
+			maxHits = element.Hits
 			maxHitEndpoint = element.EndPoint
 		}
-		totalHits += element.hits
+		totalHits += element.Hits
 	}
 	log.Printf("Maximum hit endpoint %s", maxHitEndpoint)
 

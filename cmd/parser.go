@@ -51,12 +51,12 @@ func Process(monitorCh chan AggregatedStats, alertsCh chan AggregatedStats) {
 
 type EndPointStat struct {
 	EndPoint string
-	hits     int
+	Hits     int
 }
 
 type RequestStatusStat struct {
 	Status int
-	count  int
+	Count  int
 }
 
 type DataStore struct {
@@ -156,10 +156,10 @@ func computeAggregatedStatsAndSend(aggregatedStatsCh chan AggregatedStats) {
 		RequestStatusStats: make([]RequestStatusStat, 0, 100),
 	}
 	for uri, count := range seenURIs {
-		aggregatedStats.EndPointStats = append(aggregatedStats.EndPointStats, EndPointStat{EndPoint: uri, hits: count})
+		aggregatedStats.EndPointStats = append(aggregatedStats.EndPointStats, EndPointStat{EndPoint: uri, Hits: count})
 	}
 	for status, count := range seenStatus {
-		aggregatedStats.RequestStatusStats = append(aggregatedStats.RequestStatusStats, RequestStatusStat{Status: status, count: count})
+		aggregatedStats.RequestStatusStats = append(aggregatedStats.RequestStatusStats, RequestStatusStat{Status: status, Count: count})
 	}
 
 	aggregatedStatsCh <- aggregatedStats

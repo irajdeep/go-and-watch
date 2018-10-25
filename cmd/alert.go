@@ -12,7 +12,7 @@ func validateAndDisplayAlert(statsData <-chan AggregatedStats) {
 	monitorStat, _ := <-statsData
 
 	for _, element := range monitorStat.EndPointStats {
-		if element.hits > alertThreshold {
+		if element.Hits > alertThreshold {
 			alertCount += 1
 		}
 	}
