@@ -23,7 +23,6 @@ func processAndMonitor(statsData <-chan AggregatedStats) {
 		case monitorStat := <-statsData:
 			currentTime := time.Now().Unix()
 			if currentTime >= lastMoniteredTime+monitorSettings.Interval {
-				log.Println(monitorStat)
 				go monitorEndpoint(monitorStat.EndPointStats)
 				go monitorStatusCode(monitorStat.RequestStatusStats)
 				lastMoniteredTime = currentTime
