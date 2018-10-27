@@ -29,7 +29,7 @@ func ParseLogFile(filePath string, logCh chan LogLine) {
 	}
 }
 
-func Process(monitorCh chan AggregatedStats, alertsCh chan AggregatedStats) {
+func ProcessLogs(monitorCh chan AggregatedStats, alertsCh chan AggregatedStats) {
 	logCh := make(chan LogLine)
 	go ParseLogFile("../sample-log/sample.log", logCh)
 
@@ -88,19 +88,16 @@ func updateDataStructure(lineStruct LogLine, aggregatedStatsCh chan AggregatedSt
 	parsedLog := lineStruct.parsedLog
 	epoch := parsedLog.Time.Unix()
 
+	dataStore.mutex.Lock()
 	_, exists := dataStore.TimeStampsDict[epoch]
-
 	// make space for new timestamp
 	if !exists {
-		dataStore.mutex.Lock()
-
 		dataStore.TimeStampsDict[epoch] = true
 		dataStore.TimeStampsSorted = append(dataStore.TimeStampsSorted, epoch)
 		dataStore.EndPointStats[epoch] = make(map[string]int)
 		dataStore.RequestStatusStats[epoch] = make(map[int]int)
-
-		dataStore.mutex.Unlock()
 	}
+	dataStore.mutex.Unlock()
 
 	go actualUpdateDataStructure(lineStruct, aggregatedStatsCh)
 }
@@ -128,10 +125,6 @@ func computeAggregatedStatsAndSend(aggregatedStatsCh chan AggregatedStats) {
 	defer dataStore.mutex.Unlock()
 
 	timeStamps := dataStore.TimeStampsSorted
-	leftIdx := len(timeStamps) - 10
-	if leftIdx <= 0 {
-		leftIdx = 0
-	}
 
 	// pick last 10 epochs(seconds)
 	windowStart := len(timeStamps) - 10
