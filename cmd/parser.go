@@ -82,7 +82,6 @@ type AggregatedStats struct {
 }
 
 // In-memory data structures
-var aggregatedStats AggregatedStats
 var dataStore DataStore
 
 func initDataStore() {
@@ -128,14 +127,14 @@ func actualUpdateDataStructure(lineStruct LogLine, aggregatedStatsCh chan Aggreg
 	dataStore.mutex.Unlock()
 }
 
-func computeAggregatedStatsAndSend(aggregatedStatsCh chan AggregatedStats) {
+func computeAggregateStats(duration time.Duration, aggregatedStatsCh chan AggregatedStats) {
 	dataStore.mutex.Lock()
 	defer dataStore.mutex.Unlock()
 
 	timeStamps := dataStore.TimeStampsSorted
 
-	// pick last 10 epochs(seconds)
-	windowStart := len(timeStamps) - 10
+	// pick last duration number of seconds
+	windowStart := len(timeStamps) - int(duration)
 	if windowStart < 0 {
 		windowStart = 0
 	}
@@ -164,6 +163,12 @@ func computeAggregatedStatsAndSend(aggregatedStatsCh chan AggregatedStats) {
 	}
 
 	aggregatedStatsCh <- aggregatedStats
+}
+
+// ** deprecated **
+// need to migrate to computeAggregateStats
+func computeAggregatedStatsAndSend(aggregatedStatsCh chan AggregatedStats) {
+	go computeAggregateStats(10, aggregatedStatsCh)
 }
 
 func sendStatsToMonitor(monitorCh chan AggregatedStats, aggregatedStats chan AggregatedStats) {

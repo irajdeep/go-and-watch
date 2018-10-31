@@ -1,20 +1,44 @@
 package main
 
-import "log"
+import (
+	"fmt"
+	"time"
+)
+
+type AlertConfig struct {
+	// fire alert if:
+	MaxEndPointHitThreshold int // a endpoint has these many or more hits
+	AlertInterval           time.Duration
+}
+
+var tempAlertConfig AlertConfig = AlertConfig{
+	MaxEndPointHitThreshold: 100,
+	AlertInterval:           60, // every 1 minute
+}
 
 // Receives channel from main.go
 // channel should have data for alert interval , i.e 1 min
 func validateAndDisplayAlert(statsData <-chan AggregatedStats) {
-	// Should be taken from command line parameter in main.go
-	alertThreshold := int(20)
-	alertCount := 0
 
-	monitorStat, _ := <-statsData
+	alertCh := make(chan AggregatedStats)
+	for aggregatedStats := range alertCh {
+		go displayAlert(aggregatedStats)
 
-	for _, element := range monitorStat.EndPointStats {
-		if element.Hits > alertThreshold {
-			alertCount += 1
+		time.Sleep(tempAlertConfig.AlertInterval * time.Second)
+		go computeAggregateStats(tempAlertConfig.AlertInterval, alertCh)
+	}
+}
+
+func displayAlert(aggregatedStats AggregatedStats) {
+
+	violatingEndpoints := make([]EndPointStat, 0, 100)
+	for _, endpointHits := range aggregatedStats.EndPointStats {
+		if endpointHits.Hits > tempAlertConfig.MaxEndPointHitThreshold {
+			violatingEndpoints = append(violatingEndpoints, endpointHits)
 		}
 	}
-	log.Printf("Number of endpoints with unsual high traffic %d", alertCount)
+
+	fmt.Println("****ALERT****")
+	fmt.Println("Violating endpoints:")
+	fmt.Println(violatingEndpoints)
 }
