@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"log"
 	"time"
 )
@@ -53,4 +54,19 @@ func monitorEndpoint(endPointStat []EndPointStat) {
 
 func monitorStatusCode(requestStatusStats []RequestStatusStat) {
 	log.Printf("Request statuscode stats over last %d secs: %v", monitorSettings.Interval, requestStatusStats)
+
+	statusCount := make(map[int]int)
+	for _, element := range requestStatusStats {
+		statusCount[element.Status] += 1
+	}
+
+	log.Println("Satuscode hit distribution ....")
+	// Pretty print status code distribution in json format
+	statusJsonMarshall, err := json.MarshalIndent(statusCount, "", " ")
+
+	if err != nil {
+		log.Fatalf("Failed to masrshall status code %v", err)
+	}
+	log.Print(string(statusJsonMarshall))
+
 }
