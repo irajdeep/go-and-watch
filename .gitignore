@@ -10,3 +10,4 @@ sample-log/
 # Test binary, build with `go test -c`
 *.test
 cmd/cmd
+utils/utils
