@@ -198,17 +198,17 @@ func cleanDataStore() {
 				// lock datastore before cleaning
 				dataStore.mutex.Lock()
 				log.Infof("Starting to clean datastore .....")
+
 				// current epoch since expired
-				if len(dataStore.TimeStampsSorted) > 130 {
-					timestampsToRemove := dataStore.TimeStampsSorted[:len(dataStore.TimeStampsSorted)-130]
-					dataStore.TimeStampsSorted = dataStore.TimeStampsSorted[len(dataStore.TimeStampsSorted)-130:]
-					go func() {
-						for _, timestamp := range timestampsToRemove {
-							delete(dataStore.RequestStatusStats, timestamp)
-							delete(dataStore.EndPointStats, timestamp)
-							delete(dataStore.TimeStampsDict, timestamp)
-						}
-					}()
+				currentLengthTimeStampsSorted := len(dataStore.TimeStampsSorted)
+				if currentLengthTimeStampsSorted > 130 {
+					timestampsToRemove := dataStore.TimeStampsSorted[:currentLengthTimeStampsSorted-130]
+					dataStore.TimeStampsSorted = dataStore.TimeStampsSorted[currentLengthTimeStampsSorted-130:]
+					for _, timestamp := range timestampsToRemove {
+						delete(dataStore.RequestStatusStats, timestamp)
+						delete(dataStore.EndPointStats, timestamp)
+						delete(dataStore.TimeStampsDict, timestamp)
+					}
 				}
 
 				dataStore.mutex.Unlock()
