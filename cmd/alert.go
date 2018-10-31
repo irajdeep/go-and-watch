@@ -12,7 +12,7 @@ type AlertConfig struct {
 }
 
 var tempAlertConfig AlertConfig = AlertConfig{
-	MaxEndPointHitThreshold: 100,
+	MaxEndPointHitThreshold: 5,
 	AlertInterval:           60, // every 1 minute
 }
 

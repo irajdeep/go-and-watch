@@ -42,7 +42,7 @@ func ProcessLogs(monitorCh chan AggregatedStats, alertsCh chan AggregatedStats) 
 		startTime := time.Now().Unix()
 		for lineStruct := range logCh {
 			currentTime := time.Now().Unix()
-			go updateDataStructure(lineStruct, aggregatedStatsCh)
+			updateDataStructure(lineStruct, aggregatedStatsCh)
 
 			// push every 10 seconds
 			if currentTime-startTime >= 10 {
@@ -106,7 +106,7 @@ func updateDataStructure(lineStruct LogLine, aggregatedStatsCh chan AggregatedSt
 	}
 	dataStore.mutex.Unlock()
 
-	go actualUpdateDataStructure(lineStruct, aggregatedStatsCh)
+	actualUpdateDataStructure(lineStruct, aggregatedStatsCh)
 }
 
 func actualUpdateDataStructure(lineStruct LogLine, aggregatedStatsCh chan AggregatedStats) {
@@ -195,22 +195,22 @@ func cleanDataStore() {
 		for {
 			select {
 			case <-ticker.C:
-				log.Infof("Starting to clean datastore .....")
 				// lock datastore before cleaning
 				dataStore.mutex.Lock()
+				log.Infof("Starting to clean datastore .....")
 				// current epoch since expired
-				now := time.Now()
-				secs := now.Unix()
-				for i, e := range dataStore.TimeStampsSorted {
-					if secs-e <= 130 {
-						break
-					} else {
-						delete(dataStore.RequestStatusStats, e)
-						delete(dataStore.EndPointStats, e)
-						delete(dataStore.TimeStampsDict, e)
-						dataStore.TimeStampsSorted = append(dataStore.TimeStampsSorted[:i], dataStore.TimeStampsSorted[i+1])
-					}
+				if len(dataStore.TimeStampsSorted) > 130 {
+					timestampsToRemove := dataStore.TimeStampsSorted[:len(dataStore.TimeStampsSorted)-130]
+					dataStore.TimeStampsSorted = dataStore.TimeStampsSorted[len(dataStore.TimeStampsSorted)-130:]
+					go func() {
+						for _, timestamp := range timestampsToRemove {
+							delete(dataStore.RequestStatusStats, timestamp)
+							delete(dataStore.EndPointStats, timestamp)
+							delete(dataStore.TimeStampsDict, timestamp)
+						}
+					}()
 				}
+
 				dataStore.mutex.Unlock()
 				log.Info("Cleaning datastore done ....")
 			case <-quit:
