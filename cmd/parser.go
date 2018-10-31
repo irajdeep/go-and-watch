@@ -2,6 +2,7 @@ package main
 
 import (
 	"sync"
+	"time"
 
 	"github.com/Songmu/axslogparser"
 	"github.com/hpcloud/tail"
@@ -37,9 +38,15 @@ func ProcessLogs(monitorCh chan AggregatedStats, alertsCh chan AggregatedStats) 
 
 	aggregatedStatsCh := make(chan AggregatedStats)
 	go func() {
+		startTime := time.Now().Unix()
 		for lineStruct := range logCh {
+			currentTime := time.Now().Unix()
 			go updateDataStructure(lineStruct, aggregatedStatsCh)
-			go computeAggregatedStatsAndSend(aggregatedStatsCh)
+
+			// push every 10 seconds
+			if currentTime-startTime >= 10 {
+				go computeAggregatedStatsAndSend(aggregatedStatsCh)
+			}
 		}
 	}()
 
