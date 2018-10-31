@@ -6,6 +6,7 @@ import (
 
 	"github.com/Songmu/axslogparser"
 	"github.com/hpcloud/tail"
+	"github.com/prometheus/common/log"
 )
 
 type LogLine struct {
@@ -180,5 +181,27 @@ func sendStatsToAlerts(alertsCh chan AggregatedStats, aggregatedStats chan Aggre
 }
 
 func cleanDataStore() {
-	// TODO
+	// lock datastore before cleaning
+	dataStore.mutex.Lock()
+	defer dataStore.mutex.Unlock()
+
+	// current epoch since expired
+	now := time.Now()
+	secs := now.Unix()
+
+	log.Infof("Starting to clean datastore .....")
+
+	// clean entries from the datastore whose time difference is greater than 2 minutes (130 seconds some extra buffer)
+	// which is maximum duration data we need right now for alert
+	for i, e := range dataStore.TimeStampsSorted {
+		if secs-e <= 130 {
+			break
+		} else {
+			delete(dataStore.RequestStatusStats, e)
+			delete(dataStore.EndPointStats, e)
+			delete(dataStore.TimeStampsDict, e)
+			dataStore.TimeStampsSorted = append(dataStore.TimeStampsSorted[:i], dataStore.TimeStampsSorted[i+1])
+		}
+	}
+	log.Info("Cleaning datastore done ....")
 }
