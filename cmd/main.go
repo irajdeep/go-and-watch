@@ -7,13 +7,11 @@ import (
 )
 
 func main() {
-	monitorCh := make(chan AggregatedStats)
-	alertsCh := make(chan AggregatedStats)
 
-	go ProcessLogs(monitorCh, alertsCh)
+	go ProcessLogs()
 
-	go processAndMonitor(monitorCh)
-	go validateAndDisplayAlert(alertsCh)
+	go processAndMonitor()
+	go validateAndDisplayAlert()
 
 	sigTerm := make(chan os.Signal, 1)
 	signal.Notify(sigTerm, syscall.SIGTERM)

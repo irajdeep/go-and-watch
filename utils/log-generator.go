@@ -80,7 +80,7 @@ func newApacheCommonLog() string {
 // 11/Jun/2017:05:56:04 +0900
 func fakeFormattedCurrentTime() string {
 	t := time.Now()
-	return fmt.Sprintf("%d/%s/%02d:%02d:%02d:%02d +0200",
+	return fmt.Sprintf("%02d/%s/%02d:%02d:%02d:%02d +0200",
 		t.Day(), t.Month().String()[:3], t.Year(),
 		t.Hour(), t.Minute(), t.Second())
 }

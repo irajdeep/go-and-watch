@@ -7,36 +7,37 @@ import (
 )
 
 type MonitorSetting struct {
-	Interval int64 // in seconds
+	Interval time.Duration // in seconds
 }
 
 // Configurable
-var monitorSettings MonitorSetting = MonitorSetting{Interval: int64(3)}
+var monitorSettings MonitorSetting = MonitorSetting{Interval: 3}
 
 // Receiver channel from parser
 // To be called from main.go
-func processAndMonitor(statsData <-chan AggregatedStats) {
-	startTime := time.Now().Unix()
+func processAndMonitor() {
 
-	lastMoniteredTime := startTime
-	for {
-		select {
-		case monitorStat := <-statsData:
-			currentTime := time.Now().Unix()
-			if currentTime >= lastMoniteredTime+monitorSettings.Interval {
-				go monitorEndpoint(monitorStat.EndPointStats)
-				go monitorStatusCode(monitorStat.RequestStatusStats)
-				lastMoniteredTime = currentTime
+	monitorCh := make(chan AggregatedStats)
+	go func() {
+		monitorTicker := time.NewTicker(monitorSettings.Interval * time.Second)
+		for {
+			select {
+			case <-monitorTicker.C:
+				go computeAggregateStats(monitorSettings.Interval, monitorCh)
+			default:
 
-				time.Sleep(1000 * time.Millisecond)
 			}
-		default:
-			time.Sleep(1000 * time.Millisecond)
 		}
+	}()
+
+	for aggregatedStats := range monitorCh {
+		monitorEndpointStats(aggregatedStats.EndPointStats)
+		monitorStatusCodeStats(aggregatedStats.RequestStatusStats)
 	}
+
 }
 
-func monitorEndpoint(endPointStat []EndPointStat) {
+func monitorEndpointStats(endPointStat []EndPointStat) {
 	maxHits := int(0)
 	totalHits := int(0)
 	maxHitEndpoint := ""
@@ -52,7 +53,7 @@ func monitorEndpoint(endPointStat []EndPointStat) {
 	log.Printf("Maximum hit endpoint %s hits: %d", maxHitEndpoint, maxHits)
 }
 
-func monitorStatusCode(requestStatusStats []RequestStatusStat) {
+func monitorStatusCodeStats(requestStatusStats []RequestStatusStat) {
 	log.Printf("Request statuscode stats over last %d secs: %v", monitorSettings.Interval, requestStatusStats)
 
 	statusCount := make(map[int]int)
