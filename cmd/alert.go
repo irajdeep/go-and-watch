@@ -18,14 +18,23 @@ var tempAlertConfig AlertConfig = AlertConfig{
 
 // Receives channel from main.go
 // channel should have data for alert interval , i.e 1 min
-func validateAndDisplayAlert(statsData <-chan AggregatedStats) {
+func validateAndDisplayAlert() {
 
 	alertCh := make(chan AggregatedStats)
-	for aggregatedStats := range alertCh {
-		go displayAlert(aggregatedStats)
+	go func() {
+		monitorTicker := time.NewTicker(tempAlertConfig.AlertInterval * time.Second)
+		for {
+			select {
+			case <-monitorTicker.C:
+				go computeAggregateStats(tempAlertConfig.AlertInterval, alertCh)
+			default:
 
-		time.Sleep(tempAlertConfig.AlertInterval * time.Second)
-		go computeAggregateStats(tempAlertConfig.AlertInterval, alertCh)
+			}
+		}
+	}()
+
+	for aggregatedStats := range alertCh {
+		displayAlert(aggregatedStats)
 	}
 }
 

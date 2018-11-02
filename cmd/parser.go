@@ -31,7 +31,7 @@ func ParseLogFile(filePath string, logCh chan LogLine) {
 	}
 }
 
-func ProcessLogs(monitorCh chan AggregatedStats, alertsCh chan AggregatedStats) {
+func ProcessLogs() {
 	logCh := make(chan LogLine)
 	go ParseLogFile("../sample-log/sample.log", logCh)
 
@@ -50,9 +50,6 @@ func ProcessLogs(monitorCh chan AggregatedStats, alertsCh chan AggregatedStats) 
 			}
 		}
 	}()
-
-	go sendStatsToMonitor(monitorCh, aggregatedStatsCh)
-	go sendStatsToAlerts(alertsCh, aggregatedStatsCh)
 
 	go cleanDataStore()
 }
@@ -171,19 +168,7 @@ func computeAggregatedStatsAndSend(aggregatedStatsCh chan AggregatedStats) {
 	go computeAggregateStats(10, aggregatedStatsCh)
 }
 
-func sendStatsToMonitor(monitorCh chan AggregatedStats, aggregatedStats chan AggregatedStats) {
-	// TODO add non blocking select
-	for stats := range aggregatedStats {
-		monitorCh <- stats
-	}
-}
-
-func sendStatsToAlerts(alertsCh chan AggregatedStats, aggregatedStats chan AggregatedStats) {
-	// TODO add non blocking select
-	for stats := range aggregatedStats {
-		alertsCh <- stats
-	}
-}
+const retainDataStoreSeconds int = 130
 
 func cleanDataStore() {
 	ticker := time.NewTicker(30 * time.Second)
@@ -197,13 +182,13 @@ func cleanDataStore() {
 			case <-ticker.C:
 				// lock datastore before cleaning
 				dataStore.mutex.Lock()
-				log.Infof("Starting to clean datastore .....")
+				log.Infof("Starting to clean datastore..")
 
 				// current epoch since expired
 				currentLengthTimeStampsSorted := len(dataStore.TimeStampsSorted)
-				if currentLengthTimeStampsSorted > 130 {
-					timestampsToRemove := dataStore.TimeStampsSorted[:currentLengthTimeStampsSorted-130]
-					dataStore.TimeStampsSorted = dataStore.TimeStampsSorted[currentLengthTimeStampsSorted-130:]
+				if currentLengthTimeStampsSorted > retainDataStoreSeconds {
+					timestampsToRemove := dataStore.TimeStampsSorted[:currentLengthTimeStampsSorted-retainDataStoreSeconds]
+					dataStore.TimeStampsSorted = dataStore.TimeStampsSorted[currentLengthTimeStampsSorted-retainDataStoreSeconds:]
 					for _, timestamp := range timestampsToRemove {
 						delete(dataStore.RequestStatusStats, timestamp)
 						delete(dataStore.EndPointStats, timestamp)
@@ -212,7 +197,7 @@ func cleanDataStore() {
 				}
 
 				dataStore.mutex.Unlock()
-				log.Info("Cleaning datastore done ....")
+				log.Info("...Cleaning datastore done")
 			case <-quit:
 				ticker.Stop()
 				return
