@@ -39,15 +39,8 @@ func ProcessLogs() {
 
 	aggregatedStatsCh := make(chan AggregatedStats)
 	go func() {
-		startTime := time.Now().Unix()
 		for lineStruct := range logCh {
-			currentTime := time.Now().Unix()
 			updateDataStructure(lineStruct, aggregatedStatsCh)
-
-			// push every 10 seconds
-			if currentTime-startTime >= 10 {
-				go computeAggregatedStatsAndSend(aggregatedStatsCh)
-			}
 		}
 	}()
 
@@ -160,12 +153,6 @@ func computeAggregateStats(duration time.Duration, aggregatedStatsCh chan Aggreg
 	}
 
 	aggregatedStatsCh <- aggregatedStats
-}
-
-// ** deprecated **
-// need to migrate to computeAggregateStats
-func computeAggregatedStatsAndSend(aggregatedStatsCh chan AggregatedStats) {
-	go computeAggregateStats(10, aggregatedStatsCh)
 }
 
 const retainDataStoreSeconds int = 130
