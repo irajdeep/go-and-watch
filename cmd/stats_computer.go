@@ -1,10 +1,17 @@
 package main
 
-import "time"
+import (
+	"fmt"
+	"time"
+)
 
 type EndPointStat struct {
 	EndPoint string
 	Hits     int
+}
+
+func (endpointStat *EndPointStat) Stringer() string {
+	return fmt.Sprintf("%s hits: %d", endpointStat.EndPoint, endpointStat.Hits)
 }
 
 type RequestStatusStat struct {

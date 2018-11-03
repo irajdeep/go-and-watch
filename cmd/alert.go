@@ -48,6 +48,5 @@ func displayAlert(aggregatedStats AggregatedStats) {
 	}
 
 	fmt.Println("****ALERT****")
-	fmt.Println("Violating endpoints:")
-	fmt.Println(violatingEndpoints)
+	fmt.Println("Violating endpoints:", violatingEndpoints)
 }
